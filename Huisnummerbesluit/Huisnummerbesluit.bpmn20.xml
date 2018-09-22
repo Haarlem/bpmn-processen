@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:flowable="http://flowable.org/bpmn" xmlns:modeler="http://flowable.org/modeler" targetNamespace="http://www.flowable.org/processdef" exporter="Camunda Modeler" exporterVersion="1.11.3">
+  <process id="huisnummerbesluit" name="Huisnummerbesluit" isExecutable="true">
+    <documentation>Huidige versie</documentation>
+    <startEvent id="aanvraagFormulier" name="Aanvraagformulier" camunda:formKey="embedded:app:forms/startForm.html" camunda:initiator="balmbj" flowable:formKey="aanvraagFormulierHuisnummering">
+      <extensionElements>
+        <camunda:formData businessKey="FormField_0he0qk8" />
+      </extensionElements>
+    </startEvent>
+    <sequenceFlow id="flowA1" sourceRef="aanvraagFormulier" targetRef="gbaOphalen" />
+    <sequenceFlow id="flowA2" sourceRef="gbaOphalen" targetRef="zaakAanmaken" />
+    <sequenceFlow id="flowA3" sourceRef="zaakAanmaken" targetRef="controleBehandelaar" />
+    <userTask id="controleBehandelaar" name="Controle door behandelaar" camunda:formKey="embedded:app:forms/besluitForm.html" camunda:assignee="balmbj" flowable:assignee="$INITIATOR" flowable:formKey="besluit">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+    </userTask>
+    <sequenceFlow id="flowA4" sourceRef="controleBehandelaar" targetRef="decision1" />
+    <exclusiveGateway id="decision1" />
+    <userTask id="afkeurenZaak" name="Afkeuring registreren in zaak" camunda:assignee="balmbj" flowable:assignee="$INITIATOR">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+      <outgoing>SequenceFlow_1s9gu2p</outgoing>
+    </userTask>
+    <userTask id="totaalLeges" name="Toon totaal leges" camunda:formKey="embedded:app:forms/toonLegesForm.html" camunda:assignee="balmbj" flowable:assignee="$INITIATOR" flowable:formKey="totaalLeges">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+      <incoming>SequenceFlow_1ec8chy</incoming>
+    </userTask>
+    <parallelGateway id="parallelB1" />
+    <userTask id="uploadFactuur" name="Factuur toevoegen aan zaak" camunda:formKey="embedded:app:forms/uploadFactuur.html" camunda:assignee="balmbj" flowable:assignee="$INITIATOR" flowable:formKey="factuurUpload">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+    </userTask>
+    <userTask id="uploadContour" name="Contour toevoegen aan zaak" camunda:formKey="embedded:app:forms/uploadContour.html" camunda:assignee="balmbj" flowable:assignee="$INITIATOR" flowable:formKey="contourUpload">
+      <extensionElements>
+        <modeler:activiti-idm-initiator xmlns:modeler="http://flowable.org/modeler">true</modeler:activiti-idm-initiator>
+      </extensionElements>
+    </userTask>
+    <parallelGateway id="parallelDE1">
+      <outgoing>SequenceFlow_02vzayj</outgoing>
+    </parallelGateway>
+    <endEvent id="end" />
+    <exclusiveGateway id="decision2" />
+    <sequenceFlow id="flowCGHI1" sourceRef="decision2" targetRef="afsluitenZaak" />
+    <sequenceFlow id="flowD3" sourceRef="uploadFactuur" targetRef="parallelDE1" />
+    <sequenceFlow id="flowD1" sourceRef="parallelB1" targetRef="uploadFactuur" />
+    <sequenceFlow id="flowE1" sourceRef="parallelB1" targetRef="uploadContour" />
+    <sequenceFlow id="flowC1" sourceRef="decision1" targetRef="afkeurenZaak">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${toetsing == 'afgekeurd'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flowB5" sourceRef="totaalLeges" targetRef="parallelB1" />
+    <sequenceFlow id="flowC3" sourceRef="emailAfgekeurd" targetRef="decision2" />
+    <sequenceFlow id="flowCGHI2" sourceRef="afsluitenZaak" targetRef="end" />
+    <sequenceFlow id="flowB1" sourceRef="decision1" targetRef="legesOphalen">
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${toetsing == 'goedgekeurd'}]]></conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sid-F278CBA5-0CF6-4549-9D98-3CD06053A941" sourceRef="uploadContour" targetRef="parallelDE1" />
+    <sequenceFlow id="sid-A3AD1C1C-265F-4E9F-9693-70DABAF6051D" sourceRef="voegZaakDocumentToeGoedgekeurd" targetRef="emailGoedgekeurd" />
+    <sequenceFlow id="sid-CED006B5-504B-47EA-82E6-7357CECA9EB0" sourceRef="emailGoedgekeurd" targetRef="decision2" />
+    <serviceTask id="zaakAanmaken" name="Aanmaken Zaak" camunda:asyncBefore="true" camunda:delegateExpression="${creeerZaakDelegate}">
+      <documentation><![CDATA[Input: zaak
+Output: zaaknummer]]></documentation>
+      <incoming>flowA2</incoming>
+      <outgoing>flowA3</outgoing>
+    </serviceTask>
+    <serviceTask id="gbaOphalen" name="Gegevens GBA Ophalen" camunda:asyncBefore="true" camunda:delegateExpression="${gbaDelegate}">
+      <documentation><![CDATA[Input: BSN
+Output: Gegevens aanvrager]]></documentation>
+      <incoming>flowA1</incoming>
+      <outgoing>flowA2</outgoing>
+    </serviceTask>
+    <serviceTask id="voegZaakDocumentToeGoedgekeurd" name="Documenten aan zaak koppelen" camunda:delegateExpression="${voegZaakDocumentToeDelegate}">
+      <incoming>SequenceFlow_09oju0d</incoming>
+      <outgoing>sid-A3AD1C1C-265F-4E9F-9693-70DABAF6051D</outgoing>
+    </serviceTask>
+    <businessRuleTask id="legesOphalen" name="LegesOphalen" camunda:resultVariable="leges" camunda:decisionRef="legesBerekenen" camunda:mapDecisionResult="singleEntry">
+      <incoming>flowB1</incoming>
+      <outgoing>SequenceFlow_0bjc35r</outgoing>
+    </businessRuleTask>
+    <serviceTask id="legesBerekenen" name="Leges Berekenen" camunda:asyncBefore="true" camunda:delegateExpression="${legesBerekenenDelegate}">
+      <incoming>SequenceFlow_0bjc35r</incoming>
+      <outgoing>SequenceFlow_1ec8chy</outgoing>
+    </serviceTask>
+    <sequenceFlow id="SequenceFlow_0bjc35r" sourceRef="legesOphalen" targetRef="legesBerekenen" />
+    <sequenceFlow id="SequenceFlow_1ec8chy" sourceRef="legesBerekenen" targetRef="totaalLeges" />
+    <sequenceFlow id="SequenceFlow_02vzayj" sourceRef="parallelDE1" targetRef="printenOndertekenenUploadenGoedgekeurd" />
+    <sequenceFlow id="SequenceFlow_09oju0d" sourceRef="printenOndertekenenUploadenGoedgekeurd" targetRef="voegZaakDocumentToeGoedgekeurd" />
+    <userTask id="printenOndertekenenUploadenGoedgekeurd" name="Printen, ondertekenen en uploaden" camunda:formKey="embedded:app:forms/printenOndertekenenUploaden.html" camunda:assignee="balmbj">
+      <incoming>SequenceFlow_02vzayj</incoming>
+      <outgoing>SequenceFlow_09oju0d</outgoing>
+    </userTask>
+    <userTask id="printenOndertekenenUploadenAfgekeurd" name="Printen, ondertekeken en uploaden" camunda:formKey="embedded:app:forms/printenOndertekenenUploaden.html" camunda:assignee="balmbj">
+      <incoming>SequenceFlow_1s9gu2p</incoming>
+      <outgoing>SequenceFlow_0smd0on</outgoing>
+    </userTask>
+    <sequenceFlow id="SequenceFlow_1s9gu2p" sourceRef="afkeurenZaak" targetRef="printenOndertekenenUploadenAfgekeurd" />
+    <serviceTask id="voegZaakDocumentToeAfgekeurd" name="Documenten aan zaak koppelen" camunda:delegateExpression="${voegZaakDocumentToeDelegate}">
+      <incoming>SequenceFlow_0smd0on</incoming>
+      <outgoing>SequenceFlow_0jbtplb</outgoing>
+    </serviceTask>
+    <sequenceFlow id="SequenceFlow_0smd0on" sourceRef="printenOndertekenenUploadenAfgekeurd" targetRef="voegZaakDocumentToeAfgekeurd" />
+    <sequenceFlow id="SequenceFlow_0jbtplb" sourceRef="voegZaakDocumentToeAfgekeurd" targetRef="emailAfgekeurd" />
+    <sendTask id="emailAfgekeurd" name="Mail VTH &#38; Aanvrager" camunda:delegateExpression="${mailDelegate}">
+      <incoming>SequenceFlow_0jbtplb</incoming>
+      <outgoing>flowC3</outgoing>
+    </sendTask>
+    <sendTask id="emailGoedgekeurd" name="Mail Aanvrager, VTH, BAG/BRP" camunda:delegateExpression="${mailDelegate}">
+      <extensionElements>
+        <camunda:properties>
+          <camunda:property />
+        </camunda:properties>
+      </extensionElements>
+      <incoming>sid-A3AD1C1C-265F-4E9F-9693-70DABAF6051D</incoming>
+      <outgoing>sid-CED006B5-504B-47EA-82E6-7357CECA9EB0</outgoing>
+    </sendTask>
+    <serviceTask id="afsluitenZaak" name="Afsluiten zaak" camunda:delegateExpression="${updateZaakDelegate}">
+      <incoming>flowCGHI1</incoming>
+      <outgoing>flowCGHI2</outgoing>
+    </serviceTask>
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_huisnummerbesluit">
+    <bpmndi:BPMNPlane id="BPMNPlane_huisnummerbesluit" bpmnElement="huisnummerbesluit">
+      <bpmndi:BPMNShape id="BPMNShape_aanvraagFormulier" bpmnElement="aanvraagFormulier">
+        <omgdc:Bounds x="75" y="210" width="30" height="30" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="47" y="240" width="86" height="28" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_controleBehandelaar" bpmnElement="controleBehandelaar">
+        <omgdc:Bounds x="450" y="195" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_decision1" bpmnElement="decision1" isMarkerVisible="true">
+        <omgdc:Bounds x="605" y="205" width="40" height="40" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_afkeurenZaak" bpmnElement="afkeurenZaak">
+        <omgdc:Bounds x="663" y="75" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_totaalLeges" bpmnElement="totaalLeges">
+        <omgdc:Bounds x="954" y="315" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_parallelB1" bpmnElement="parallelB1">
+        <omgdc:Bounds x="1112" y="325" width="40" height="40" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1087" y="365" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_uploadFactuur" bpmnElement="uploadFactuur">
+        <omgdc:Bounds x="1203" y="375" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_uploadContour" bpmnElement="uploadContour">
+        <omgdc:Bounds x="1203" y="255" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_parallelDE1" bpmnElement="parallelDE1">
+        <omgdc:Bounds x="1344" y="325" width="40" height="40" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1319" y="365" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_end" bpmnElement="end">
+        <omgdc:Bounds x="2165" y="331" width="28" height="28" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2134" y="359" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_decision2" bpmnElement="decision2" isMarkerVisible="true">
+        <omgdc:Bounds x="1894" y="325" width="40" height="40" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1869" y="365" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_sid-CED006B5-504B-47EA-82E6-7357CECA9EB0" bpmnElement="sid-CED006B5-504B-47EA-82E6-7357CECA9EB0">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1853" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1894" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1828.5" y="320" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowCGHI2" bpmnElement="flowCGHI2">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="2098" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="2166" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="2087" y="320" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowCGHI1" bpmnElement="flowCGHI1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1934" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1998" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1921" y="320" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowC1" bpmnElement="flowC1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="625" y="205" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="625" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="663" y="105" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="595" y="145" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowD3" bpmnElement="flowD3">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1303" y="405" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1364" y="405" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1364" y="365" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1288.5" y="380" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowB1" bpmnElement="flowB1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="625" y="245" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="625" y="346" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="663" y="346" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="595" y="285.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowA1" bpmnElement="flowA1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="104" y="225" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="165" y="225" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="89.5" y="200" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowC3" bpmnElement="flowC3">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1303" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1915" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1915" y="326" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1564" y="80" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowA2" bpmnElement="flowA2">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="265" y="225" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="320" y="225" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="247.5" y="200" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sid-A3AD1C1C-265F-4E9F-9693-70DABAF6051D" bpmnElement="sid-A3AD1C1C-265F-4E9F-9693-70DABAF6051D">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1696" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1753" y="346" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1679.5" y="320.5" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowE1" bpmnElement="flowE1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1132" y="325" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1132" y="285" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1203" y="285" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1102" y="295" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowD1" bpmnElement="flowD1">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1132" y="365" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1132" y="405" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1203" y="405" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1102" y="375" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowA3" bpmnElement="flowA3">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="420" y="225" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="450" y="225" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="390" y="200" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowA4" bpmnElement="flowA4">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="550" y="225" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="605" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_flowB5" bpmnElement="flowB5">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1054" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1112" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1038" y="320" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_sid-F278CBA5-0CF6-4549-9D98-3CD06053A941" bpmnElement="sid-F278CBA5-0CF6-4549-9D98-3CD06053A941">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1303" y="285" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1364" y="285" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1364" y="325" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1288.5" y="260" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1036qzf_di" bpmnElement="zaakAanmaken">
+        <omgdc:Bounds x="320" y="185" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0nx3vc9_di" bpmnElement="gbaOphalen">
+        <omgdc:Bounds x="165" y="185" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_1yabxw2_di" bpmnElement="voegZaakDocumentToeGoedgekeurd">
+        <omgdc:Bounds x="1596" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BusinessRuleTask_1g01ieu_di" bpmnElement="legesOphalen">
+        <omgdc:Bounds x="663" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0tsh8mz_di" bpmnElement="legesBerekenen">
+        <omgdc:Bounds x="802" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0bjc35r_di" bpmnElement="SequenceFlow_0bjc35r">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="763" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="802" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="737.5" y="323" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ec8chy_di" bpmnElement="SequenceFlow_1ec8chy">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="902" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="954" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="883" y="323" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_02vzayj_di" bpmnElement="SequenceFlow_02vzayj">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1384" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1437" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1410.5" y="323" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_09oju0d_di" bpmnElement="SequenceFlow_09oju0d">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1537" y="345" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1596" y="345" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1566.5" y="323" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1u8148w_di" bpmnElement="printenOndertekenenUploadenGoedgekeurd">
+        <omgdc:Bounds x="1437" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="UserTask_0ea8ukb_di" bpmnElement="printenOndertekenenUploadenAfgekeurd">
+        <omgdc:Bounds x="803" y="65" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1s9gu2p_di" bpmnElement="SequenceFlow_1s9gu2p">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="763" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="803" y="105" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="783" y="83" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_16o3xac_di" bpmnElement="voegZaakDocumentToeAfgekeurd">
+        <omgdc:Bounds x="954" y="65" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0smd0on_di" bpmnElement="SequenceFlow_0smd0on">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="903" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="954" y="105" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="928.5" y="83" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0jbtplb_di" bpmnElement="SequenceFlow_0jbtplb">
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1054" y="105" />
+        <omgdi:waypoint xsi:type="omgdc:Point" x="1203" y="105" />
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds x="1128.5" y="83" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SendTask_0cjo2pp_di" bpmnElement="emailAfgekeurd">
+        <omgdc:Bounds x="1203" y="65" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SendTask_09iyj7y_di" bpmnElement="emailGoedgekeurd">
+        <omgdc:Bounds x="1753" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0xjhncn_di" bpmnElement="afsluitenZaak">
+        <omgdc:Bounds x="1998" y="305" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
