@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.1">
+  <bpmn:process id="Process_InvoerenArchiefdatum" name="InvoerenArchiefdatum" isExecutable="true">
+    <bpmn:startEvent id="inputRefnumber" name="input Zaakidentificatie" camunda:initiator="balmbj">
+      <bpmn:outgoing>SequenceFlow_1c3awih</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_1c3awih" sourceRef="inputRefnumber" targetRef="zrcGetZaak" />
+    <bpmn:serviceTask id="zrcGetZaak" name="Ophalen gegevens Zakenmagazijn" camunda:delegateExpression="${geefZaakdetailsDelegate}">
+      <bpmn:incoming>SequenceFlow_1c3awih</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_12oy4ze</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_12oy4ze" sourceRef="zrcGetZaak" targetRef="ztcGet" />
+    <bpmn:endEvent id="EndEvent_15g5rjr" name="Afgehandeld">
+      <bpmn:incoming>SequenceFlow_10eumjw</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0hyy0cp</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="ztcGet" name="Ophalen gegevens ZTC" camunda:delegateExpression="${ztcDelegate}">
+      <bpmn:incoming>SequenceFlow_12oy4ze</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0t07xaf</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0t07xaf" sourceRef="ztcGet" targetRef="ExclusiveGateway_0i7ottp" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0i7ottp" name="resultaattype.&#10;brondatumProcedure == &#10;afgehandeld ?&#10;">
+      <bpmn:incoming>SequenceFlow_0t07xaf</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1ylvdcx</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_0cqvnut</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1ylvdcx" name="afgehandeld" sourceRef="ExclusiveGateway_0i7ottp" targetRef="berekenAadatum">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resultaattype.brondatumProcedure == 'afgehandeld'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="Task_1i7wssv" name="(TEST)&#10;Ophalen relevante gegevens" camunda:assignee="balmbj">
+      <bpmn:incoming>SequenceFlow_0cqvnut</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_16p38zg</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0cqvnut" name="(TEST)&#10;?&#10;" sourceRef="ExclusiveGateway_0i7ottp" targetRef="Task_1i7wssv">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${resultaattype.brondatumProcedure == 'niks'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1fhhun6" sourceRef="berekenAadatum" targetRef="zrcUpdateZaak" />
+    <bpmn:serviceTask id="berekenAadatum" name="Berekenen archiefactiedatum" camunda:class="nl.haarlem.services.zkn.ArchiefactiedatumDelegate">
+      <bpmn:incoming>SequenceFlow_1ylvdcx</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_16o1bvk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1fhhun6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_10eumjw" sourceRef="zrcUpdateZaak" targetRef="EndEvent_15g5rjr" />
+    <bpmn:serviceTask id="zrcUpdateZaak" name="Update zaak met archiefactiedatum" camunda:class="nl.haarlem.services.zkn.UpdateZaakDelegate">
+      <bpmn:incoming>SequenceFlow_1fhhun6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10eumjw</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_09rhjws" name="(TEST)&#10;Relevante gegevens aanwezig?&#10;">
+      <bpmn:incoming>SequenceFlow_16p38zg</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0hyy0cp</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_16o1bvk</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_16p38zg" sourceRef="Task_1i7wssv" targetRef="ExclusiveGateway_09rhjws" />
+    <bpmn:sequenceFlow id="SequenceFlow_0hyy0cp" name="Nee" sourceRef="ExclusiveGateway_09rhjws" targetRef="EndEvent_15g5rjr">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${test == 'nee'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_16o1bvk" name="Ja" sourceRef="ExclusiveGateway_09rhjws" targetRef="berekenAadatum">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${test == 'ja'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_InvoerenArchiefdatum">
+      <bpmndi:BPMNShape id="StartEvent_090fssl_di" bpmnElement="inputRefnumber">
+        <dc:Bounds x="46" y="266" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="25" y="306" width="79" height="24" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1c3awih_di" bpmnElement="SequenceFlow_1c3awih">
+        <di:waypoint x="82" y="284" />
+        <di:waypoint x="142" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="67" y="263" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0wonrai_di" bpmnElement="zrcGetZaak">
+        <dc:Bounds x="142" y="244" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_12oy4ze_di" bpmnElement="SequenceFlow_12oy4ze">
+        <di:waypoint x="242" y="284" />
+        <di:waypoint x="293" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="222.5" y="263" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_15g5rjr_di" bpmnElement="EndEvent_15g5rjr">
+        <dc:Bounds x="1200" y="266" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1188" y="306" width="61" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0s6lnql_di" bpmnElement="ztcGet">
+        <dc:Bounds x="293" y="244" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0t07xaf_di" bpmnElement="SequenceFlow_0t07xaf">
+        <di:waypoint x="393" y="284" />
+        <di:waypoint x="461" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="427" y="263" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0i7ottp_di" bpmnElement="ExclusiveGateway_0i7ottp" isMarkerVisible="true">
+        <dc:Bounds x="461" y="259" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="445" y="313" width="83" height="48" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1ylvdcx_di" bpmnElement="SequenceFlow_1ylvdcx">
+        <di:waypoint x="511" y="284" />
+        <di:waypoint x="723" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="587.70703125" y="263" width="59" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0t3gxrm_di" bpmnElement="Task_1i7wssv" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <dc:Bounds x="723" y="-29" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0cqvnut_di" bpmnElement="SequenceFlow_0cqvnut" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="486" y="259" />
+        <di:waypoint x="486" y="11" />
+        <di:waypoint x="723" y="11" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="431" y="128" width="36" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1fhhun6_di" bpmnElement="SequenceFlow_1fhhun6">
+        <di:waypoint x="823" y="284" />
+        <di:waypoint x="963" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="893" y="263" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1q7da4k_di" bpmnElement="berekenAadatum">
+        <dc:Bounds x="723" y="244" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_10eumjw_di" bpmnElement="SequenceFlow_10eumjw">
+        <di:waypoint x="1063" y="284" />
+        <di:waypoint x="1200" y="284" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1131.5" y="263" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0tj48np_di" bpmnElement="zrcUpdateZaak">
+        <dc:Bounds x="963" y="244" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_09rhjws_di" bpmnElement="ExclusiveGateway_09rhjws" isMarkerVisible="true" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <dc:Bounds x="748" y="109" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="687" y="116" width="53" height="66" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_16p38zg_di" bpmnElement="SequenceFlow_16p38zg" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="773" y="51" />
+        <di:waypoint x="773" y="109" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="788" y="74" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0hyy0cp_di" bpmnElement="SequenceFlow_0hyy0cp" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="798" y="134" />
+        <di:waypoint x="1218" y="134" />
+        <di:waypoint x="1218" y="266" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="998" y="113" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_16o1bvk_di" bpmnElement="SequenceFlow_16o1bvk" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="773" y="159" />
+        <di:waypoint x="773" y="244" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="782" y="196" width="12" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
