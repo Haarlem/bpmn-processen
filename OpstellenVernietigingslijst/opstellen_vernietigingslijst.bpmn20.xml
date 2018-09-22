@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="1.15.1">
+  <bpmn:process id="Process_OpstellenVernietigingslijst" name="Opstellen Vernietigingslijst" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>SequenceFlow_12fmp8k</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_12fmp8k" sourceRef="StartEvent_1" targetRef="creeerZaakVernietigingslijst" />
+    <bpmn:serviceTask id="creeerZaakVernietigingslijst" name="Creeeren zaak" camunda:delegateExpression="${creeerZaakDelegate}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="creeerZaakInput">
+            <camunda:map>
+              <camunda:entry key="omschrijving">Vernietigingslijst</camunda:entry>
+              <camunda:entry key="toelichting">Vernietigingslijst</camunda:entry>
+              <camunda:entry key="zaaktypeidentificatie">1</camunda:entry>
+              <camunda:entry key="initiatorOEidentificatie">IB</camunda:entry>
+              <camunda:entry key="uitvoerendeOEidentificatie">IB</camunda:entry>
+            </camunda:map>
+          </camunda:inputParameter>
+          <camunda:outputParameter name="zaak">${zaak}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_12fmp8k</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0wnbrre</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_09xcdou" name="">
+      <bpmn:incoming>SequenceFlow_16nmvk9</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0wnbrre" sourceRef="creeerZaakVernietigingslijst" targetRef="ServiceTask_0tr2f3k" />
+    <bpmn:serviceTask id="ServiceTask_0tr2f3k" name="Genereer Vernietigingslijst" camunda:class="nl.haarlem.services.zkn.vernietiging.GenereerVernietigingsLijstDelegate">
+      <bpmn:incoming>SequenceFlow_0wnbrre</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0sv9dz7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0sv9dz7" sourceRef="ServiceTask_0tr2f3k" targetRef="SubProcess_1eh08k2" />
+    <bpmn:subProcess id="SubProcess_1eh08k2" name="Subproces Vernietiging">
+      <bpmn:incoming>SequenceFlow_0sv9dz7</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1sibiya</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${zakenLijst.zaken}" camunda:elementVariable="elementZaak" />
+      <bpmn:userTask id="Task_0oxdvoo" name="Controle Zaak" camunda:formKey="embedded:app:forms/inzienVernietigingsLijst.html" camunda:assignee="balmbj">
+        <bpmn:incoming>SequenceFlow_0f2xscu</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_18eyqv6</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:startEvent id="StartEvent_0hbde72">
+        <bpmn:outgoing>SequenceFlow_0f2xscu</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_0f2xscu" sourceRef="StartEvent_0hbde72" targetRef="Task_0oxdvoo" />
+      <bpmn:endEvent id="EndEvent_0jiii0c">
+        <bpmn:incoming>SequenceFlow_1gufb7i</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="SequenceFlow_18eyqv6" sourceRef="Task_0oxdvoo" targetRef="Task_0tu79ap" />
+      <bpmn:sequenceFlow id="SequenceFlow_1gufb7i" sourceRef="Task_0tu79ap" targetRef="EndEvent_0jiii0c" />
+      <bpmn:serviceTask id="Task_0tu79ap" name="Update Zaak" camunda:class="nl.haarlem.services.zkn.UpdateZaakDelegate">
+        <bpmn:incoming>SequenceFlow_18eyqv6</bpmn:incoming>
+        <bpmn:outgoing>SequenceFlow_1gufb7i</bpmn:outgoing>
+      </bpmn:serviceTask>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="SequenceFlow_1sibiya" sourceRef="SubProcess_1eh08k2" targetRef="Task_10zdh6u" />
+    <bpmn:sequenceFlow id="SequenceFlow_16nmvk9" sourceRef="Task_10zdh6u" targetRef="EndEvent_09xcdou" />
+    <bpmn:serviceTask id="Task_10zdh6u" name="Genereer vernietigingslijst" camunda:class="nl.haarlem.services.zkn.vernietiging.GenereerVernietigingsLijstDelegate">
+      <bpmn:incoming>SequenceFlow_1sibiya</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_16nmvk9</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_OpstellenVernietigingslijst">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="145" y="203" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="111" y="242" width="90" height="20" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_12fmp8k_di" bpmnElement="SequenceFlow_12fmp8k">
+        <di:waypoint x="181" y="221" />
+        <di:waypoint x="266" y="221" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="175.5" y="203" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_19h7omu_di" bpmnElement="creeerZaakVernietigingslijst">
+        <dc:Bounds x="266" y="181" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_09xcdou_di" bpmnElement="EndEvent_09xcdou">
+        <dc:Bounds x="1410" y="203" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="863" y="246" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0wnbrre_di" bpmnElement="SequenceFlow_0wnbrre">
+        <di:waypoint x="366" y="221" />
+        <di:waypoint x="439" y="221" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="423.5" y="202" width="0" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1gnz59n_di" bpmnElement="Task_0oxdvoo">
+        <dc:Bounds x="797" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_0tr2f3k_di" bpmnElement="ServiceTask_0tr2f3k">
+        <dc:Bounds x="439" y="181" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0sv9dz7_di" bpmnElement="SequenceFlow_0sv9dz7">
+        <di:waypoint x="539" y="221" />
+        <di:waypoint x="682" y="222" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="SubProcess_1eh08k2_di" bpmnElement="SubProcess_1eh08k2" isExpanded="true">
+        <dc:Bounds x="682" y="73" width="519" height="296" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_0hbde72_di" bpmnElement="StartEvent_0hbde72">
+        <dc:Bounds x="708" y="197" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0f2xscu_di" bpmnElement="SequenceFlow_0f2xscu">
+        <di:waypoint x="744" y="215" />
+        <di:waypoint x="797" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_0jiii0c_di" bpmnElement="EndEvent_0jiii0c">
+        <dc:Bounds x="1127" y="197" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1sibiya_di" bpmnElement="SequenceFlow_1sibiya">
+        <di:waypoint x="1201" y="221" />
+        <di:waypoint x="1250" y="221" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_16nmvk9_di" bpmnElement="SequenceFlow_16nmvk9">
+        <di:waypoint x="1350" y="221" />
+        <di:waypoint x="1410" y="221" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_157cj0h_di" bpmnElement="Task_10zdh6u">
+        <dc:Bounds x="1250" y="181" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_18eyqv6_di" bpmnElement="SequenceFlow_18eyqv6">
+        <di:waypoint x="897" y="215" />
+        <di:waypoint x="952" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1gufb7i_di" bpmnElement="SequenceFlow_1gufb7i">
+        <di:waypoint x="1052" y="215" />
+        <di:waypoint x="1127" y="215" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1avkes8_di" bpmnElement="Task_0tu79ap">
+        <dc:Bounds x="952" y="175" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
