@@ -1,0 +1,11 @@
+# Use the main Haarlem GitHub pages site as a theme
+remote_theme: Haarlem/haarlem.github.io
+
+# Every README in a folder should be the page for a process
+defaults:
+  -
+    scope:
+      path: "*/README.md" # an empty string here means all files in the project
+    values:
+      layout: "process"
+      process: true
