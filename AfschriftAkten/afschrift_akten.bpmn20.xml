@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.0.1">
+  <bpmn:process id="Process_AfschriftAkten" name="Afschrift Akten" isExecutable="true" camunda:versionTag="1">
+    <bpmn:startEvent id="StartEvent_AfschriftAkte" name="input" camunda:formKey="embedded:app:forms/startProcess.html" camunda:initiator="starter">
+      <bpmn:documentation>input:
+- zaaknummer
+- Welke akte heeft u nodig?
+- Van wie vraagt u de akte aan?
+
+(- Meertalige of internationale akte
+- Hoeveel exemplaren wilt u ontvangen?
+- (Kosten?) Betaald?)</bpmn:documentation>
+      <bpmn:outgoing>SequenceFlow_1dju3kp</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_05idqo8" name="Akte beschikbaar / gevonden?&#10;">
+      <bpmn:incoming>SequenceFlow_054ydp6</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1j1fe72</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1v350q8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1j1fe72" name="Ja" sourceRef="ExclusiveGateway_05idqo8" targetRef="Task_16dvs47">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${zaak.zaakdocument.found}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:task id="Task_007dzh1" name="Handmatig opzoeken akte (uploaden?)">
+      <bpmn:incoming>SequenceFlow_1v350q8</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_11o2d10</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_1v350q8" name="Nee&#10;&#10;" sourceRef="ExclusiveGateway_05idqo8" targetRef="Task_007dzh1">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!zaak.zaakdocument.found}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1dju3kp" sourceRef="StartEvent_AfschriftAkte" targetRef="ServiceTask_OphalenGegevensBRP" />
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1i8gj73" name="Gevonden in externe bron?">
+      <bpmn:incoming>SequenceFlow_11o2d10</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0kilskk</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_05fk3ao</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_11o2d10" sourceRef="Task_007dzh1" targetRef="ExclusiveGateway_1i8gj73" />
+    <bpmn:sequenceFlow id="SequenceFlow_0kilskk" name="Ja" sourceRef="ExclusiveGateway_1i8gj73" targetRef="Task_01kpxob">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${aanvraag.akteFound}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EndEvent_1gxy1yx">
+      <bpmn:incoming>SequenceFlow_11kyycl</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_05fk3ao" name="Nee" sourceRef="ExclusiveGateway_1i8gj73" targetRef="Task_1vr96ds">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!aanvraag.akteFound}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:task id="Task_1vr96ds" name="Zaak afsluiten">
+      <bpmn:incoming>SequenceFlow_05fk3ao</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0pvc493</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_11kyycl</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_11kyycl" sourceRef="Task_1vr96ds" targetRef="EndEvent_1gxy1yx" />
+    <bpmn:sequenceFlow id="SequenceFlow_054ydp6" sourceRef="ServiceTask_OpzoekenAkte" targetRef="ExclusiveGateway_05idqo8" />
+    <bpmn:serviceTask id="ServiceTask_CreeerenZaak" name="Creeeren zaak" camunda:delegateExpression="${creeerZaakDelegate}">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="creeerZaakInput">
+            <camunda:map>
+              <camunda:entry key="omschrijving">Afschrift Akte</camunda:entry>
+              <camunda:entry key="toelichting">Afschrift Akte</camunda:entry>
+              <camunda:entry key="zaaktypeidentificatie">2</camunda:entry>
+              <camunda:entry key="uitvoerendeOEidentificatie">DEMO</camunda:entry>
+              <camunda:entry key="initiatorOEidentificatie">DEMO</camunda:entry>
+            </camunda:map>
+          </camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_10q7n9z</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0twvjfl</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_0twvjfl" sourceRef="ServiceTask_CreeerenZaak" targetRef="ServiceTask_OpzoekenAkte" />
+    <bpmn:serviceTask id="ServiceTask_VoegZaakdocumentToe" name="Voeg zaakdocument (afschrift akte) toe aan huidige zaak" camunda:delegateExpression="${voegZaakdocumentToeDelegate}">
+      <bpmn:incoming>SequenceFlow_0w66816</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0pvc493</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="Task_01kpxob" name="Controle Afschrift Akte">
+      <bpmn:documentation>camunda form met download van de ondertekende PDF</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_0nl1rrz</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0kilskk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0w66816</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_0h9yx6w" name="(IRMA) Ondertekening (QR code) toevoegen aan Zaak">
+      <bpmn:documentation>PDF uitbreiden met IRMA ondertekening</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1yge7oa</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0nl1rrz</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="SequenceFlow_0k21bnk" sourceRef="Task_16dvs47" targetRef="Task_0rtzoux" />
+    <bpmn:sequenceFlow id="SequenceFlow_0nl1rrz" sourceRef="Task_0h9yx6w" targetRef="Task_01kpxob" />
+    <bpmn:sequenceFlow id="SequenceFlow_0w66816" sourceRef="Task_01kpxob" targetRef="ServiceTask_VoegZaakdocumentToe" />
+    <bpmn:sequenceFlow id="SequenceFlow_0pvc493" sourceRef="ServiceTask_VoegZaakdocumentToe" targetRef="Task_1vr96ds" />
+    <bpmn:serviceTask id="ServiceTask_OpzoekenAkte" name="Opzoeken Akte DMS/ZM" camunda:delegateExpression="${opzoekenAkteDelegate}">
+      <bpmn:incoming>SequenceFlow_0twvjfl</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_054ydp6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1yge7oa" sourceRef="Task_0rtzoux" targetRef="Task_0h9yx6w" />
+    <bpmn:serviceTask id="ServiceTask_OphalenGegevensBRP" name="Ophalen persoonsgegevens" camunda:class="nl.haarlem.services.gba.GBADelegate">
+      <bpmn:documentation>haalt gegevens op voor het creeren van de zaak (zaak starten met NPS)</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1dju3kp</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_10q7n9z</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="SequenceFlow_10q7n9z" sourceRef="ServiceTask_OphalenGegevensBRP" targetRef="ServiceTask_CreeerenZaak" />
+    <bpmn:userTask id="Task_0rtzoux" name="Afschrift Akte ondertekenen" camunda:formKey="embedded:app:forms/afschriftAkteOndertekenen.html" camunda:assignee="${starter}">
+      <bpmn:incoming>SequenceFlow_0k21bnk</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1yge7oa</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_16dvs47" name="Genereer afschrift van akte (PDF)" camunda:delegateExpression="${genereerPdfDelegate}">
+      <bpmn:documentation>van base64 naar PDF</bpmn:documentation>
+      <bpmn:incoming>SequenceFlow_1j1fe72</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0k21bnk</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:textAnnotation id="TextAnnotation_0wv29wy">
+      <bpmn:text>stap voor demo doeleinde</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_095uwpw" sourceRef="Task_01kpxob" targetRef="TextAnnotation_0wv29wy" />
+    <bpmn:textAnnotation id="TextAnnotation_1mtw97r">
+      <bpmn:text>genereerZaakIdentificatie
+creeerZaak
+actualiseerZaakstatus</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1cnh7q0" sourceRef="ServiceTask_CreeerenZaak" targetRef="TextAnnotation_1mtw97r" />
+    <bpmn:textAnnotation id="TextAnnotation_0gdnxtg">
+      <bpmn:text>zaakAPI: getZakenVanNPS
+geefLijstZaakdocumenten
+geefZaakdocumentLezen</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0g3snhw" sourceRef="ServiceTask_OpzoekenAkte" targetRef="TextAnnotation_0gdnxtg" />
+    <bpmn:textAnnotation id="TextAnnotation_15wn1b7">
+      <bpmn:text>genereerDocumentidentificatie
+voegZaakdocumentToe</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0fdju62" sourceRef="ServiceTask_VoegZaakdocumentToe" targetRef="TextAnnotation_15wn1b7" />
+    <bpmn:textAnnotation id="TextAnnotation_1gc8cys">
+      <bpmn:text>actualiseerZaakstatus
+updateZaak</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1tlkzy3" sourceRef="Task_1vr96ds" targetRef="TextAnnotation_1gc8cys" />
+    <bpmn:textAnnotation id="TextAnnotation_1p0c15s">
+      <bpmn:text>Medewerker voegt ondertekening toe m.b.v. IRMA app</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_1j5gf28" sourceRef="Task_0rtzoux" targetRef="TextAnnotation_1p0c15s" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_AfschriftAkten">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_AfschriftAkte">
+        <dc:Bounds x="-358" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-352" y="143" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_05idqo8_di" bpmnElement="ExclusiveGateway_05idqo8" isMarkerVisible="true">
+        <dc:Bounds x="320" y="95" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="303" y="155" width="85" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1j1fe72_di" bpmnElement="SequenceFlow_1j1fe72">
+        <di:waypoint x="370" y="120" />
+        <di:waypoint x="471" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="408" y="126" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_007dzh1_di" bpmnElement="Task_007dzh1" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <dc:Bounds x="471" y="-103" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1v350q8_di" bpmnElement="SequenceFlow_1v350q8" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="345" y="95" />
+        <di:waypoint x="345" y="-63" />
+        <di:waypoint x="471" y="-63" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="350" y="10" width="20" height="36" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1dju3kp_di" bpmnElement="SequenceFlow_1dju3kp">
+        <di:waypoint x="-322" y="120" />
+        <di:waypoint x="-239" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="-111.5" y="99" width="90" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1i8gj73_di" bpmnElement="ExclusiveGateway_1i8gj73" isMarkerVisible="true" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <dc:Bounds x="678" y="-88" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="669" y="-126" width="68" height="24" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_11o2d10_di" bpmnElement="SequenceFlow_11o2d10" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="571" y="-63" />
+        <di:waypoint x="646" y="-63" />
+        <di:waypoint x="646" y="-63" />
+        <di:waypoint x="678" y="-63" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="661" y="-69" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0kilskk_di" bpmnElement="SequenceFlow_0kilskk" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="703" y="-38" />
+        <di:waypoint x="703" y="1" />
+        <di:waypoint x="882" y="1" />
+        <di:waypoint x="882" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="783" y="-22" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="EndEvent_1gxy1yx_di" bpmnElement="EndEvent_1gxy1yx">
+        <dc:Bounds x="1402" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1244" y="-41" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_05fk3ao_di" bpmnElement="SequenceFlow_05fk3ao" bioc:stroke="#E53935" bioc:fill="#FFCDD2">
+        <di:waypoint x="728" y="-63" />
+        <di:waypoint x="1255" y="-63" />
+        <di:waypoint x="1255" y="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="985" y="-81" width="21" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_1vr96ds_di" bpmnElement="Task_1vr96ds">
+        <dc:Bounds x="1205" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_11kyycl_di" bpmnElement="SequenceFlow_11kyycl">
+        <di:waypoint x="1305" y="120" />
+        <di:waypoint x="1402" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1173.5" y="-84" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_054ydp6_di" bpmnElement="SequenceFlow_054ydp6">
+        <di:waypoint x="240" y="120" />
+        <di:waypoint x="320" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="280" y="99" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_08i2i51_di" bpmnElement="ServiceTask_CreeerenZaak">
+        <dc:Bounds x="-47" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0twvjfl_di" bpmnElement="SequenceFlow_0twvjfl">
+        <di:waypoint x="53" y="120" />
+        <di:waypoint x="140" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="106.5" y="99" width="0" height="12" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1gxo1hf_di" bpmnElement="ServiceTask_VoegZaakdocumentToe">
+        <dc:Bounds x="1021" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_01kpxob_di" bpmnElement="Task_01kpxob">
+        <dc:Bounds x="832" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_0w0wucy_di" bpmnElement="Task_0h9yx6w">
+        <dc:Bounds x="653" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0k21bnk_di" bpmnElement="SequenceFlow_0k21bnk">
+        <di:waypoint x="521" y="160" />
+        <di:waypoint x="521" y="253" />
+        <di:waypoint x="565" y="253" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0nl1rrz_di" bpmnElement="SequenceFlow_0nl1rrz">
+        <di:waypoint x="753" y="120" />
+        <di:waypoint x="832" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0w66816_di" bpmnElement="SequenceFlow_0w66816">
+        <di:waypoint x="932" y="120" />
+        <di:waypoint x="1021" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0wv29wy_di" bpmnElement="TextAnnotation_0wv29wy">
+        <dc:Bounds x="817" y="233" width="130" height="39" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_095uwpw_di" bpmnElement="Association_095uwpw">
+        <di:waypoint x="882" y="160" />
+        <di:waypoint x="882" y="233" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0pvc493_di" bpmnElement="SequenceFlow_0pvc493">
+        <di:waypoint x="1121" y="120" />
+        <di:waypoint x="1205" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0ja91o4_di" bpmnElement="ServiceTask_OpzoekenAkte">
+        <dc:Bounds x="140" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1mtw97r_di" bpmnElement="TextAnnotation_1mtw97r">
+        <dc:Bounds x="-71" y="227" width="148" height="52" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1cnh7q0_di" bpmnElement="Association_1cnh7q0">
+        <di:waypoint x="3" y="160" />
+        <di:waypoint x="3" y="227" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0gdnxtg_di" bpmnElement="TextAnnotation_0gdnxtg">
+        <dc:Bounds x="108" y="221" width="164" height="53" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0g3snhw_di" bpmnElement="Association_0g3snhw">
+        <di:waypoint x="190" y="160" />
+        <di:waypoint x="190" y="221" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_15wn1b7_di" bpmnElement="TextAnnotation_15wn1b7">
+        <dc:Bounds x="979" y="228" width="182" height="39" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0fdju62_di" bpmnElement="Association_0fdju62">
+        <di:waypoint x="1071" y="160" />
+        <di:waypoint x="1071" y="228" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1gc8cys_di" bpmnElement="TextAnnotation_1gc8cys">
+        <dc:Bounds x="1191" y="229" width="127" height="38" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1tlkzy3_di" bpmnElement="Association_1tlkzy3">
+        <di:waypoint x="1255" y="160" />
+        <di:waypoint x="1255" y="229" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1yge7oa_di" bpmnElement="SequenceFlow_1yge7oa">
+        <di:waypoint x="666" y="253" />
+        <di:waypoint x="703" y="253" />
+        <di:waypoint x="703" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_1p0c15s_di" bpmnElement="TextAnnotation_1p0c15s">
+        <dc:Bounds x="559" y="375" width="113" height="54" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1j5gf28_di" bpmnElement="Association_1j5gf28">
+        <di:waypoint x="616" y="293" />
+        <di:waypoint x="616" y="375" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_0qk8fcr_di" bpmnElement="ServiceTask_OphalenGegevensBRP">
+        <dc:Bounds x="-239" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_10q7n9z_di" bpmnElement="SequenceFlow_10q7n9z">
+        <di:waypoint x="-139" y="120" />
+        <di:waypoint x="-47" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0phdvgo_di" bpmnElement="Task_0rtzoux">
+        <dc:Bounds x="566" y="213" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_00y4x4q_di" bpmnElement="Task_16dvs47">
+        <dc:Bounds x="471" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
