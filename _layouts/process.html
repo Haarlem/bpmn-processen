@@ -1,0 +1,12 @@
+---
+layout: wrapper
+---
+
+{{ content }}
+
+{% comment %} Capture is now a hack to come to the right URL {% endcomment %}
+{% capture path %}{{ page.path | strip_newlines | remove: "README.md" }}{% endcapture %}
+<section id="bpmn-detail">
+  <h2>Bekijk <a href="{{ site.github.repository_url}}/blob/master/{{ path }}/{{ page.filename }}"<code>{{ page.filename }}</code><a></a></h2>
+  {% include bpmn.html url = page.filename %}
+</section>
