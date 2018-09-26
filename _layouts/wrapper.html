@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>BPMN Processen Gemeente Haarlem</title>
+  <link rel="stylesheet" href="{{site.baseurl}}/assets/style.css">
+  <link rel="stylesheet" href="{{site.baseurl}}/assets/site-style.css">
+</head>
+<body>
+  <header>
+
+    <a id="logo" href="{{ site.baseurl }}/">
+      <img src="{{ site.baseurl }}/assets/bpmn-processen-logo.svg" alt="Gemeente Haarlem" id="city-logo">
+    </a>
+
+  </header>
+  <main>
+
+    {{ content }}
+    
+    <h2>Alle processen</h2>
+
+    <section class="cards">
+        {% for page in site.pages %} {% if page.process == true and page %}
+        <a href="{% if page.link %}{{page.link}}{% else %}{{ site.baseurl }}{{ page.url }}{% endif %}">
+          <h3>{{ page.title }}</h3>
+          <p>{{ page.excerpt }}</p>
+          {% if page.link %}<small>{{ page.link }}</small>{% endif %}
+        </a>
+        {% endif %} {% endfor %}
+      </section>
+
+  </main>
+
+  <footer>
+    <article>
+      <h3>
+          Gemeente Haarlem BPMN Processen
+      </h3>
+      <ul>
+        <li>
+          <a href="{{ site.baseurl }}/">Home</a>
+        </li>
+        <li>
+          <a href="https://github.com/haarlem/bpmn-processen">De processen op GitHub</a>
+        </li>
+      </ul>
+    </article>
+    <article>
+        <h3>
+          Processen
+        </h3>
+        <ul>
+            {% for page in site.pages %} {% if page.process == true and page %}
+            <li>
+                <a href="{% if page.link %}{{page.link}}{% else %}{{ site.baseurl }}{{ page.url }}{% endif %}">{{ page.title }}</a>
+            </li>
+            {% endif %} {% endfor %}
+          </ul>
+      </article>
+    <article>
+      <h3>
+          <a href="https:////haarlem.github.io/">Open Source</a>
+      </h3>
+      <ul>
+        <li>
+            <a href="https:////haarlem.github.io/guides/">Guides</a>
+        </li>
+        <li>
+            <a href="https:////haarlem.github.io/projects/">Projects</a>
+        </li>
+      </ul>
+    </article>
+    <article>
+      <h3>
+        <a href="mailto:antwoord@haarlem.nl">Contact</a>
+      </h3>
+      <ul>
+        <li>
+          <a href="https://opendata.haarlem.nl">opendata.haarlem.nl</a>
+        </li>
+        <li>
+          <a href="http://github.com/haarlem">GitHub</a>
+        </li>
+        <li>
+          <a href="mailto:antwoord@haarlem.nl">E-mail</a>
+        </li>
+      </ul>
+    </article>
+  </footer>
+</body>
+</html>
